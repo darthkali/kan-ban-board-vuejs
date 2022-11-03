@@ -1,62 +1,45 @@
 <template>
   <div class="container mt-5">
     <div class="row">
-      <div class="col-4">
-        <div class="card">
-          <div class="card-header text-center bg-secondary text-white">
-            <h4>Neue Aufgaben</h4>
-          </div>
-          <div class="card-body">
-            <div
-              class="alert alert-secondary"
-              v-for="task in newTasks"
-              :key="task.id"
-            >
-              {{ task.content }}
-            </div>
-          </div>
-          <div class="card-footer">
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Neue Aufgabe"
-            />
-            <div class="d-grid my-2">
-              <button class="btn btn-secondary">Eintragen</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-4">
-        <div class="card">
-          <div class="card-header text-center bg-primary text-white">
-            <h4>In Bearbeitung</h4>
-          </div>
-          <div class="card-body"></div>
-        </div>
-      </div>
-      <div class="col-4">
-        <div class="card">
-          <div class="card-header text-center bg-success text-white">
-            <h4>Erledigt</h4>
-          </div>
-          <div class="card-body"></div>
-        </div>
+      <div
+          class="col-4"
+          v-for="statusCard in statusCards"
+          :key="statusCard.status">
+        <StatusCard
+            :title="statusCard.title"
+            :titleClasses="statusCard.titleClasses"
+            :newTasks="statusCard.newTasks"
+            :status="statusCard.status"
+            :tasks="filteredTasks(statusCard.status)"
+            @new-task="addTask"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import StatusCard from "./components/StatusCard";
+import logger from "./mixins/logger"
+
 export default {
   name: "App",
+  mixins: [logger],
+  components: {
+    StatusCard
+  },
+  provide() {
+    return {
+      maxNumberOfChars: 255,
+    }
+  },
   data() {
     return {
       tasks: [
         {
           id: 1,
           content: "Dashboard überarbeiten.",
-          status: 0,
+          status: 1,
         },
         {
           id: 2,
@@ -64,12 +47,37 @@ export default {
           status: 0,
         },
       ],
+      statusCards: [
+        {
+          title: "Neue Aufgaben",
+          titleClasses: "bg-secondary text-white",
+          newTasks: true,
+          status: 0,
+        },
+        {
+          title: "In Bearbeitung",
+          titleClasses: "bg-primary text-white",
+          newTasks: false,
+          status: 1,
+        },
+        {
+          title: "Erledigt",
+          titleClasses: "bg-success text-white",
+          newTasks: false,
+          status: 2,
+        },
+      ],
     };
   },
-  computed: {
-    newTasks() {
-      return this.tasks.filter((task) => task.status === 0);
+  methods: {
+    filteredTasks(status) {
+      return this.tasks.filter((task) => task.status === status);
     },
+    addTask(task) {
+      task.id = Math.random()
+      this.tasks.push(task)
+      this.writeLogEntry("Neue Aufgabe hinzugefügt")
+    }
   },
 };
 </script>
